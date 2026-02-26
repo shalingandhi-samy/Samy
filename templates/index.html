@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        walmart: {
+                            blue: { 100: '#0053e2', 110: '#004acc', 130: '#003399' },
+                            spark: { 10: '#fff8e6', 100: '#ffc220', 140: '#995213' },
+                            red: { 10: '#fef0ef', 100: '#ea1100' },
+                            green: { 10: '#edf7ea', 100: '#2a8703' },
+                            gray: { 10: '#f8f8f8', 50: '#e0e0e0', 100: '#888888', 160: '#2e2e2e' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .task-pending { border-left: 4px solid #888888; }
+        .task-in-progress { border-left: 4px solid #0053e2; }
+        .task-done { border-left: 4px solid #2a8703; }
+        .priority-high { border-left-color: #ea1100 !important; }
+        .priority-medium { border-left-color: #ffc220 !important; }
+        .priority-low { border-left-color: #0053e2 !important; }
+        .day-today { box-shadow: 0 0 0 2px #0053e2; }
+        .htmx-settling { opacity: 0.8; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        .sortable-ghost { opacity: 0.3; background: #e0e0e0 !important; }
+        .sortable-drag { box-shadow: 0 10px 25px rgba(0,0,0,0.15); transform: rotate(2deg); }
+        body::before {
+            content: 'SAFETY FIRST';
+            position: fixed;
+            bottom: 20px;
+            left: 24px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            color: rgba(0, 83, 226, 0.12);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 700px;
+            height: 700px;
+            transform: translate(-50%, -50%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='%23FFC220'%3E%3Cellipse cx='100' cy='30' rx='18' ry='35'/%3E%3Cellipse cx='160.6' cy='65' rx='18' ry='35' transform='rotate(60 160.6 65)'/%3E%3Cellipse cx='160.6' cy='135' rx='18' ry='35' transform='rotate(120 160.6 135)'/%3E%3Cellipse cx='100' cy='170' rx='18' ry='35'/%3E%3Cellipse cx='39.4' cy='135' rx='18' ry='35' transform='rotate(60 39.4 135)'/%3E%3Cellipse cx='39.4' cy='65' rx='18' ry='35' transform='rotate(120 39.4 65)'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="text-walmart-gray-160 min-h-screen" style="background-color: #e8f0fe;">
+    <header class="bg-walmart-blue-100 text-white py-4 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER
+            </h1>
+            <div class="flex items-center gap-2">
+                <a
+                    href="/dashboard"
+                    class="bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Dashboard"
+                    title="Dashboard"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                </a>
+                <a
+                    href="/categories"
+                    class="bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Manage Categories"
+                    title="Manage Categories"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" /></svg>
+                </a>
+                <button
+                    onclick="document.getElementById('search-panel').classList.toggle('hidden'); document.getElementById('week-content').classList.toggle('hidden');"
+                    class="bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Search tasks"
+                    title="Search & Filter"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                </button>
+                <a
+                    id="export-btn"
+                    href="/export?week={{ week_start.isoformat() }}"
+                    class="bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Export to CSV"
+                    title="Export Week to CSV"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                </a>
+                <!-- Notification Bell -->
+                <button
+                    id="notif-bell"
+                    onclick="toggleNotifPanel()"
+                    class="relative bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Notifications"
+                    title="Notifications"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    <span id="notif-badge" class="hidden absolute -top-1 -right-1 bg-walmart-red-100 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+                </button>
+                <!-- Manage Team -->
+                <button
+                    onclick="document.getElementById('team-modal').classList.remove('hidden'); htmx.ajax('GET', '/assignees/manage', {target:'#assignee-manage-list', swap:'innerHTML'});"
+                    class="bg-white/20 text-white font-semibold px-3 py-2 rounded-lg hover:bg-white/30 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+                    aria-label="Manage team members"
+                    title="Manage Team"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                </button>
+                <button
+                    onclick="document.getElementById('add-modal').classList.remove('hidden')"
+                    class="bg-walmart-spark-100 text-walmart-gray-160 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-walmart-blue-100"
+                    aria-label="Add new task"
+                >
+                    + New Task
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1600px] mx-auto px-4 py-6">
+        <div class="flex gap-6">
+            <!-- Main Content Area -->
+            <div class="flex-1 min-w-0">
+                <!-- Search Panel (hidden by default) -->
+                <div id="search-panel" class="hidden">
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 mb-4 fade-in">
+                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">🔍 Search & Filter</h3>
+                <form
+                    hx-get="/search"
+                    hx-target="#search-results"
+                    hx-swap="innerHTML"
+                    hx-trigger="submit, keyup[key=='Enter'] from:#search-q"
+                    class="grid grid-cols-1 md:grid-cols-7 gap-3"
+                >
+                    <div class="md:col-span-2">
+                        <input type="text" id="search-q" name="q" placeholder="Search tasks..."
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                        />
+                    </div>
+                    <select name="status" class="border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-walmart-blue-100">
+                        <option value="">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                    <select name="priority" class="border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-walmart-blue-100">
+                        <option value="">All Priorities</option>
+                        <option value="high">🔴 High</option>
+                        <option value="medium">🟡 Medium</option>
+                        <option value="low">🔵 Low</option>
+                    </select>
+                    <select name="category_id" class="border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-walmart-blue-100">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.id }}">🏷️ {{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select name="assignee_id" class="border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-walmart-blue-100">
+                        <option value="">All Assignees</option>
+                        {% for a in assignees %}
+                        <option value="{{ a.id }}">👤 {{ a.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit"
+                        class="bg-walmart-blue-100 text-white font-semibold px-4 py-2 rounded-lg hover:bg-walmart-blue-110 transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+                    >Search</button>
+                </form>
+            </div>
+            <div id="search-results"></div>
+        </div>
+
+        <div id="week-content">
+            {% include 'partials/week_content.html' %}
+        </div>
+            </div><!-- /flex-1 main content -->
+
+            <!-- Sidebar -->
+            <aside class="hidden lg:block w-72 flex-shrink-0" aria-label="Sidebar">
+                <div class="sticky top-6 space-y-4">
+                    <!-- Due Today -->
+                    <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 shadow-sm">
+                        <div id="due-today-panel"
+                            hx-get="/due-today"
+                            hx-trigger="load, refreshSidebar from:body"
+                            hx-swap="innerHTML"
+                        >
+                            <div class="text-xs text-walmart-gray-100 italic">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming 7 Days -->
+                    <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 shadow-sm">
+                        <div id="upcoming-panel"
+                            hx-get="/upcoming-7"
+                            hx-trigger="load, refreshSidebar from:body"
+                            hx-swap="innerHTML"
+                        >
+                            <div class="text-xs text-walmart-gray-100 italic">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div><!-- /flex -->
+    </main>
+
+    <!-- Task Detail Modal -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="detail-modal-title">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 fade-in max-h-[90vh] overflow-y-auto">
+            <div id="detail-content"><!-- HTMX loads task_detail.html here --></div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="add-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/50" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title" class="text-xl font-bold text-walmart-gray-160">Add New Task</h2>
+                <button
+                    onclick="document.getElementById('add-modal').classList.add('hidden')"
+                    class="text-walmart-gray-100 hover:text-walmart-gray-160 p-1 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded"
+                    aria-label="Close modal"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <form
+                hx-post="/tasks"
+                hx-target="#week-content"
+                hx-swap="innerHTML"
+                hx-on::after-request="if(event.detail.successful) { document.getElementById('add-modal').classList.add('hidden'); this.reset(); }"
+            >
+                <div class="space-y-4">
+                    <div>
+                        <label for="task-title" class="block text-sm font-medium text-walmart-gray-160 mb-1">Task Title <span class="text-walmart-red-100">*</span></label>
+                        <input
+                            type="text" id="task-title" name="title" required maxlength="200"
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                            placeholder="What needs to be done?"
+                        />
+                    </div>
+                    <div>
+                        <label for="task-desc" class="block text-sm font-medium text-walmart-gray-160 mb-1">Description</label>
+                        <textarea
+                            id="task-desc" name="description" maxlength="500" rows="2"
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                            placeholder="Optional details..."
+                        ></textarea>
+                    </div>
+                    <div>
+                        <label for="task-date" class="block text-sm font-medium text-walmart-gray-160 mb-1">Date <span class="text-walmart-red-100">*</span></label>
+                        <input
+                            type="date" id="task-date" name="task_date" required
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                        />
+                    </div>
+                    <div>
+                        <label for="task-priority" class="block text-sm font-medium text-walmart-gray-160 mb-1">Priority</label>
+                        <select
+                            id="task-priority" name="priority"
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                        >
+                            <option value="high">🔴 High</option>
+                            <option value="medium" selected>🟡 Medium</option>
+                            <option value="low">🔵 Low</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-category" class="block text-sm font-medium text-walmart-gray-160 mb-1">Category</label>
+                        <select
+                            id="task-category" name="category_id"
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                        >
+                            <option value="">No Category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">🏷️ {{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-due" class="block text-sm font-medium text-walmart-gray-160 mb-1">Due Date</label>
+                        <input
+                            type="date" id="task-due" name="due_date"
+                            class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                        />
+                    </div>
+                    <div>
+                        <label for="task-assignee" class="block text-sm font-medium text-walmart-gray-160 mb-1">Assign To</label>
+                        <div class="flex gap-2">
+                            <select
+                                id="task-assignee" name="assignee_id"
+                                class="flex-1 border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                            >
+                                <option value="">Unassigned</option>
+                                {% for a in assignees %}
+                                <option value="{{ a.id }}">{{ a.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button
+                                type="button"
+                                onclick="document.getElementById('add-assignee-row').classList.toggle('hidden')"
+                                class="px-3 py-2 bg-walmart-gray-10 border border-walmart-gray-50 rounded-lg hover:bg-walmart-gray-50 transition-colors text-sm font-medium focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                                aria-label="Add new team member"
+                                title="Add new team member"
+                            >+</button>
+                        </div>
+                        <div id="add-assignee-row" class="hidden mt-2 space-y-2">
+                            <div class="flex gap-2">
+                                <input
+                                    type="text" id="new-assignee-name" placeholder="Name"
+                                    class="flex-1 border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                                />
+                                <input
+                                    type="email" id="new-assignee-email" placeholder="email@walmart.com"
+                                    class="flex-1 border border-walmart-gray-50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                                />
+                                <button
+                                    type="button"
+                                    onclick="addAssignee()"
+                                    class="px-3 py-2 bg-walmart-blue-100 text-white text-sm rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+                                >Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex gap-3 justify-end">
+                    <button
+                        type="button"
+                        onclick="document.getElementById('add-modal').classList.add('hidden')"
+                        class="px-4 py-2 border border-walmart-gray-50 text-walmart-gray-160 rounded-lg hover:bg-walmart-gray-10 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                    >Cancel</button>
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-walmart-blue-100 text-white font-semibold rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+                    >Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Team Management Modal -->
+    <div id="team-modal" class="hidden fixed inset-0 z-[80] flex items-center justify-center bg-black/50"
+        onclick="if(event.target===this)this.classList.add('hidden')" role="dialog" aria-modal="true">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 fade-in">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-walmart-gray-50">
+                <h2 class="text-lg font-bold text-walmart-gray-160">👥 Manage Team</h2>
+                <button
+                    onclick="document.getElementById('team-modal').classList.add('hidden')"
+                    class="text-walmart-gray-100 hover:text-walmart-gray-160 p-1 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded"
+                    aria-label="Close"
+                >
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="assignee-manage-list" class="max-h-[60vh] overflow-y-auto">
+                <!-- HTMX loads assignee_list.html here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Dropdown Panel -->
+    <div id="notif-panel" class="hidden fixed top-16 right-4 z-[70] w-80 bg-white rounded-xl shadow-2xl border border-walmart-gray-50 overflow-hidden fade-in">
+        <div class="bg-walmart-red-100 text-white px-4 py-3 flex items-center justify-between">
+            <h3 class="text-sm font-bold flex items-center gap-2">
+                🔔 Overdue Notifications
+            </h3>
+            <button onclick="toggleNotifPanel()" class="text-white/80 hover:text-white focus:outline-none" aria-label="Close notifications">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div id="notif-panel-body"
+            hx-get="/overdue-list"
+            hx-trigger="load"
+            hx-swap="innerHTML"
+            class="max-h-80 overflow-y-auto"
+        >
+            <div class="p-4 text-xs text-walmart-gray-100 italic">Loading...</div>
+        </div>
+        <div class="border-t border-walmart-gray-50 px-4 py-2 space-y-2">
+            <div class="flex items-center justify-between">
+                <button onclick="requestNotifPermission()" class="text-xs text-walmart-blue-100 hover:underline focus:outline-none">
+                    🔔 Enable browser alerts
+                </button>
+                <button onclick="checkOverdueNow()" class="text-xs text-walmart-gray-100 hover:text-walmart-gray-160 focus:outline-none">
+                    🔄 Refresh
+                </button>
+            </div>
+            <form
+                hx-post="/notify-overdue"
+                hx-target="#email-result"
+                hx-swap="innerHTML"
+                class="flex items-center gap-2"
+            >
+                <button
+                    type="submit"
+                    class="flex-1 bg-walmart-blue-100 text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                >
+                    📧 Email Assignees Now
+                </button>
+                <button
+                    type="submit"
+                    name="force" value="1"
+                    class="text-[10px] text-walmart-gray-100 hover:text-walmart-gray-160 underline focus:outline-none"
+                    title="Re-send even if already notified today"
+                >Force</button>
+            </form>
+            <div id="email-result"></div>
+        </div>
+    </div>
+
+    <!-- Overdue Notification List for Panel (reusable partial) -->
+    <!-- Uses same /overdue endpoint but rendered inside the panel -->
+
+    <!-- Overdue Toast (loads on page open + polls every 60s) -->
+    <div id="overdue-container"
+        hx-get="/overdue"
+        hx-trigger="load, every 60s, refreshOverdue from:body"
+        hx-swap="innerHTML"
+        class="pointer-events-none"
+    ></div>
+
+    <script>
+        // Close modals on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('add-modal').classList.add('hidden');
+                document.getElementById('detail-modal').classList.add('hidden');
+            }
+        });
+        // Close modals on backdrop click
+        ['add-modal', 'detail-modal'].forEach(id => {
+            document.getElementById(id).addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) e.currentTarget.classList.add('hidden');
+            });
+        });
+        // Add new assignee
+        async function addAssignee() {
+            const nameInput = document.getElementById('new-assignee-name');
+            const emailInput = document.getElementById('new-assignee-email');
+            const name = nameInput.value.trim();
+            const email = emailInput ? emailInput.value.trim() : '';
+            if (!name) return;
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            const resp = await fetch('/assignees', { method: 'POST', body: formData });
+            if (resp.ok) {
+                const html = await resp.text();
+                document.getElementById('task-assignee').innerHTML = html;
+                const select = document.getElementById('task-assignee');
+                select.value = select.options[select.options.length - 1].value;
+                nameInput.value = '';
+                if (emailInput) emailInput.value = '';
+                document.getElementById('add-assignee-row').classList.add('hidden');
+            }
+        }
+
+        // Refresh sidebar when week content changes
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.detail.target && e.detail.target.id === 'week-content') {
+                htmx.trigger(document.body, 'refreshSidebar');
+                initDragAndDrop();
+            }
+        });
+
+        // Drag & Drop with SortableJS
+        function initDragAndDrop() {
+            document.querySelectorAll('[data-day-drop]').forEach(container => {
+                if (container._sortable) container._sortable.destroy();
+                container._sortable = new Sortable(container, {
+                    group: 'tasks',
+                    animation: 150,
+                    ghostClass: 'opacity-30',
+                    dragClass: 'shadow-lg',
+                    handle: '.drag-handle',
+                    onEnd: function(evt) {
+                        const taskId = evt.item.dataset.taskId;
+                        const newDate = evt.to.dataset.dayDrop;
+                        if (!taskId || !newDate) return;
+                        // Only fire if actually moved to a different day
+                        const oldDate = evt.from.dataset.dayDrop;
+                        if (oldDate === newDate) return;
+                        const formData = new FormData();
+                        formData.append('new_date', newDate);
+                        fetch(`/tasks/${taskId}/move`, {
+                            method: 'PATCH',
+                            body: formData,
+                        }).then(resp => resp.text()).then(html => {
+                            document.getElementById('week-content').innerHTML = html;
+                            htmx.process(document.getElementById('week-content'));
+                            htmx.trigger(document.body, 'refreshSidebar');
+                            initDragAndDrop();
+                        });
+                    }
+                });
+            });
+        }
+
+        // Init drag & drop on first load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initDragAndDrop, 300);
+        });
+
+        // ── Notification System ────────────────────────────────────
+
+        // Track last known overdue count to avoid repeat browser notifs
+        let lastOverdueCount = -1;
+
+        function dismissOverdueToast() {
+            const toast = document.getElementById('overdue-toast');
+            if (toast) {
+                toast.style.transition = 'opacity 0.3s, transform 0.3s';
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }
+        }
+
+        function updateBellBadge(count) {
+            const badge = document.getElementById('notif-badge');
+            if (!badge) return;
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.classList.remove('hidden');
+                // Pulse animation on the bell
+                const bell = document.getElementById('notif-bell');
+                if (bell) {
+                    bell.classList.add('animate-pulse');
+                    setTimeout(() => bell.classList.remove('animate-pulse'), 3000);
+                }
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function sendBrowserNotification(count, titles) {
+            // Only notify if count changed (avoid spamming)
+            if (count === lastOverdueCount) return;
+            lastOverdueCount = count;
+
+            if (!('Notification' in window)) return;
+            if (Notification.permission !== 'granted') return;
+            if (count === 0) return;
+
+            const body = titles.length > 0
+                ? titles.join('\n') + (count > 3 ? `\n...and ${count - 3} more` : '')
+                : `${count} task(s) are overdue!`;
+
+            const notif = new Notification('⚠️ Overdue Tasks - PHL5 Safety Tracker', {
+                body: body,
+                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
+                tag: 'overdue-tasks',
+                requireInteraction: true,
+            });
+
+            notif.onclick = () => {
+                window.focus();
+                toggleNotifPanel();
+                notif.close();
+            };
+        }
+
+        function requestNotifPermission() {
+            if (!('Notification' in window)) {
+                alert('Your browser does not support desktop notifications.');
+                return;
+            }
+            Notification.requestPermission().then(perm => {
+                if (perm === 'granted') {
+                    new Notification('✅ Notifications Enabled', {
+                        body: "You'll be alerted when tasks are overdue.",
+                        tag: 'notif-enabled',
+                    });
+                } else {
+                    alert('Notifications were denied. You can enable them in browser settings.');
+                }
+            });
+        }
+
+        function toggleNotifPanel() {
+            const panel = document.getElementById('notif-panel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                // Refresh the panel content
+                htmx.ajax('GET', '/overdue-list', { target: '#notif-panel-body', swap: 'innerHTML' });
+            }
+        }
+
+        function checkOverdueNow() {
+            htmx.trigger(document.getElementById('overdue-container'), 'refreshOverdue');
+            htmx.ajax('GET', '/overdue-list', { target: '#notif-panel-body', swap: 'innerHTML' });
+        }
+
+        // Close notif panel on click outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('notif-panel');
+            const bell = document.getElementById('notif-bell');
+            if (!panel.classList.contains('hidden') &&
+                !panel.contains(e.target) &&
+                !bell.contains(e.target)) {
+                panel.classList.add('hidden');
+            }
+        });
+
+        // Auto-request notification permission on first visit
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('Notification' in window && Notification.permission === 'default') {
+                // Politely ask after 5 seconds
+                setTimeout(() => {
+                    if (Notification.permission === 'default') {
+                        requestNotifPermission();
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

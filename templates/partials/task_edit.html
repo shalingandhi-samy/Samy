@@ -1,0 +1,101 @@
+<!-- Task Edit Form (loaded into detail modal) -->
+<div class="fade-in">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold text-walmart-gray-160">✏️ Edit Task</h2>
+        <button
+            onclick="document.getElementById('detail-modal').classList.add('hidden')"
+            class="text-walmart-gray-100 hover:text-walmart-gray-160 p-1 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded"
+            aria-label="Close editor"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+    <form
+        hx-put="/tasks/{{ task.id }}"
+        hx-target="#week-content"
+        hx-swap="innerHTML"
+        hx-on::after-request="if(event.detail.successful) { document.getElementById('detail-modal').classList.add('hidden'); }"
+    >
+        <div class="space-y-4">
+            <div>
+                <label for="edit-title" class="block text-sm font-medium text-walmart-gray-160 mb-1">Task Title <span class="text-walmart-red-100">*</span></label>
+                <input
+                    type="text" id="edit-title" name="title" required maxlength="200"
+                    value="{{ task.title }}"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                />
+            </div>
+            <div>
+                <label for="edit-desc" class="block text-sm font-medium text-walmart-gray-160 mb-1">Description</label>
+                <textarea
+                    id="edit-desc" name="description" maxlength="500" rows="2"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                >{{ task.description }}</textarea>
+            </div>
+            <div>
+                <label for="edit-date" class="block text-sm font-medium text-walmart-gray-160 mb-1">Date <span class="text-walmart-red-100">*</span></label>
+                <input
+                    type="date" id="edit-date" name="task_date" required
+                    value="{{ task.task_date }}"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                />
+            </div>
+            <div>
+                <label for="edit-priority" class="block text-sm font-medium text-walmart-gray-160 mb-1">Priority</label>
+                <select
+                    id="edit-priority" name="priority"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                >
+                    <option value="high" {% if task.priority == 'high' %}selected{% endif %}>🔴 High</option>
+                    <option value="medium" {% if task.priority == 'medium' %}selected{% endif %}>🟡 Medium</option>
+                    <option value="low" {% if task.priority == 'low' %}selected{% endif %}>🔵 Low</option>
+                </select>
+            </div>
+            <div>
+                <label for="edit-category" class="block text-sm font-medium text-walmart-gray-160 mb-1">Category</label>
+                <select
+                    id="edit-category" name="category_id"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                >
+                    <option value="">No Category</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if task.category_id == cat.id %}selected{% endif %}>🏷️ {{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="edit-due" class="block text-sm font-medium text-walmart-gray-160 mb-1">Due Date</label>
+                <input
+                    type="date" id="edit-due" name="due_date"
+                    value="{{ task.due_date or '' }}"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                />
+            </div>
+            <div>
+                <label for="edit-assignee" class="block text-sm font-medium text-walmart-gray-160 mb-1">Assign To</label>
+                <select
+                    id="edit-assignee" name="assignee_id"
+                    class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent bg-white"
+                >
+                    <option value="">Unassigned</option>
+                    {% for a in assignees %}
+                    <option value="{{ a.id }}" {% if task.assignee_id == a.id %}selected{% endif %}>{{ a.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="mt-6 flex gap-3 justify-end">
+            <button
+                type="button"
+                hx-get="/tasks/{{ task.id }}/detail"
+                hx-target="#detail-content"
+                hx-swap="innerHTML"
+                class="px-4 py-2 border border-walmart-gray-50 text-walmart-gray-160 rounded-lg hover:bg-walmart-gray-10 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+            >Cancel</button>
+            <button
+                type="submit"
+                class="px-4 py-2 bg-walmart-blue-100 text-white font-semibold rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+            >Save Changes</button>
+        </div>
+    </form>
+</div>

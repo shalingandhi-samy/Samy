@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        walmart: {
+                            blue: { 100: '#0053e2', 110: '#004acc', 130: '#003399' },
+                            spark: { 10: '#fff8e6', 100: '#ffc220', 140: '#995213' },
+                            red: { 10: '#fef0ef', 100: '#ea1100' },
+                            green: { 10: '#edf7ea', 100: '#2a8703' },
+                            gray: { 10: '#f8f8f8', 50: '#e0e0e0', 100: '#888888', 160: '#2e2e2e' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body::before {
+        content: 'SAFETY FIRST';
+        position: fixed;
+        bottom: 20px;
+        left: 24px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        color: rgba(0, 83, 226, 0.12);
+        z-index: 9999;
+        pointer-events: none;
+    }
+    body::after {
+        content: '';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 700px;
+        height: 700px;
+        transform: translate(-50%, -50%);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='%23FFC220'%3E%3Cellipse cx='100' cy='30' rx='18' ry='35'/%3E%3Cellipse cx='160.6' cy='65' rx='18' ry='35' transform='rotate(60 160.6 65)'/%3E%3Cellipse cx='160.6' cy='135' rx='18' ry='35' transform='rotate(120 160.6 135)'/%3E%3Cellipse cx='100' cy='170' rx='18' ry='35'/%3E%3Cellipse cx='39.4' cy='135' rx='18' ry='35' transform='rotate(60 39.4 135)'/%3E%3Cellipse cx='39.4' cy='65' rx='18' ry='35' transform='rotate(120 39.4 65)'/%3E%3C/g%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0.07;
+        pointer-events: none;
+        z-index: 9999;
+    }
+</style>
+</head>
+<body class="text-walmart-gray-160 min-h-screen" style="background-color: #e8f0fe;">
+    <header class="bg-walmart-blue-100 text-white py-4 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Dashboard
+            </h1>
+            <a href="/" class="bg-walmart-spark-100 text-walmart-gray-160 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-walmart-blue-100">
+                ← Back to Tracker
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 text-center">
+                <div class="text-3xl font-bold text-walmart-gray-160">{{ total }}</div>
+                <div class="text-xs text-walmart-gray-100 uppercase tracking-wide mt-1">Total Tasks</div>
+            </div>
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 text-center">
+                <div class="text-3xl font-bold text-walmart-gray-100">{{ status_counts.pending }}</div>
+                <div class="text-xs text-walmart-gray-100 uppercase tracking-wide mt-1">Pending</div>
+            </div>
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 text-center">
+                <div class="text-3xl font-bold text-walmart-blue-100">{{ status_counts['in-progress'] }}</div>
+                <div class="text-xs text-walmart-gray-100 uppercase tracking-wide mt-1">In Progress</div>
+            </div>
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 text-center">
+                <div class="text-3xl font-bold text-walmart-green-100">{{ status_counts.done }}</div>
+                <div class="text-xs text-walmart-gray-100 uppercase tracking-wide mt-1">Done</div>
+            </div>
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 text-center {% if overdue > 0 %}bg-walmart-red-10 ring-2 ring-walmart-red-100{% endif %}">
+                <div class="text-3xl font-bold text-walmart-red-100">{{ overdue }}</div>
+                <div class="text-xs text-walmart-red-100 uppercase tracking-wide mt-1 font-semibold">⚠️ Overdue</div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Weekly Trend -->
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4">
+                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">📈 Weekly Completion Trend</h3>
+                <div style="height: 280px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Status Donut -->
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4">
+                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">🎯 Task Status Breakdown</h3>
+                <div style="height: 280px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Category Donut -->
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4">
+                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">🏷️ Tasks by Category</h3>
+                <div style="height: 280px;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Priority Bar -->
+            <div class="bg-white rounded-xl border border-walmart-gray-50 p-4">
+                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">🚨 Tasks by Priority</h3>
+                <div style="height: 280px;">
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 3 -->
+        <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 mb-6">
+            <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">👥 Assignee Workload</h3>
+            <div style="height: 300px;">
+                <canvas id="assigneeChart"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { font: { family: 'system-ui' } } } },
+        };
+
+        // Weekly Trend Line Chart
+        const trendData = {{ weekly_trend | tojson }};
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: trendData.map(d => d.label),
+                datasets: [
+                    {
+                        label: 'Total Tasks',
+                        data: trendData.map(d => d.total),
+                        borderColor: '#0053e2',
+                        backgroundColor: 'rgba(0, 83, 226, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                    },
+                    {
+                        label: 'Completed',
+                        data: trendData.map(d => d.done),
+                        borderColor: '#2a8703',
+                        backgroundColor: 'rgba(42, 135, 3, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                    },
+                ],
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+        });
+
+        // Status Donut
+        const statusData = {{ status_counts | tojson }};
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Pending', 'In Progress', 'Done'],
+                datasets: [{
+                    data: [statusData.pending, statusData['in-progress'], statusData.done],
+                    backgroundColor: ['#888888', '#0053e2', '#2a8703'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }],
+            },
+            options: { ...chartDefaults, cutout: '60%' },
+        });
+
+        // Category Donut
+        const catData = {{ category_data | tojson }};
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: catData.map(c => c.name),
+                datasets: [{
+                    data: catData.map(c => c.count),
+                    backgroundColor: catData.map(c => c.color),
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }],
+            },
+            options: { ...chartDefaults, cutout: '60%' },
+        });
+
+        // Priority Bar
+        const prioData = {{ priority_counts | tojson }};
+        new Chart(document.getElementById('priorityChart'), {
+            type: 'bar',
+            data: {
+                labels: ['High', 'Medium', 'Low'],
+                datasets: [{
+                    label: 'Tasks',
+                    data: [prioData.high, prioData.medium, prioData.low],
+                    backgroundColor: ['#ea1100', '#ffc220', '#0053e2'],
+                    borderRadius: 8,
+                }],
+            },
+            options: { ...chartDefaults, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { display: false } } },
+        });
+
+        // Assignee Horizontal Bar
+        const assignData = {{ assignee_data | tojson }};
+        new Chart(document.getElementById('assigneeChart'), {
+            type: 'bar',
+            data: {
+                labels: assignData.map(a => a.name),
+                datasets: [
+                    {
+                        label: 'Total',
+                        data: assignData.map(a => a.total),
+                        backgroundColor: '#0053e2',
+                        borderRadius: 6,
+                    },
+                    {
+                        label: 'Done',
+                        data: assignData.map(a => a.done),
+                        backgroundColor: '#2a8703',
+                        borderRadius: 6,
+                    },
+                ],
+            },
+            options: { ...chartDefaults, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+        });
+    </script>
+</body>
+</html>

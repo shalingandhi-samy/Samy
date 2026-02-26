@@ -1,0 +1,66 @@
+<!-- Search Results Partial -->
+<div class="fade-in">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-walmart-gray-160">
+            {% if query %}Results for "{{ query }}"{% else %}Filtered Tasks{% endif %}
+            <span class="text-sm font-normal text-walmart-gray-100">({{ results|length }} found)</span>
+        </h3>
+        <button
+            onclick="document.getElementById('search-panel').classList.add('hidden'); document.getElementById('week-content').classList.remove('hidden');"
+            class="text-sm text-walmart-blue-100 hover:underline focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded px-2 py-1"
+        >← Back to Week</button>
+    </div>
+
+    {% if results %}
+    <div class="space-y-2">
+        {% for task in results %}
+        <div
+            class="bg-white border border-walmart-gray-50 rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow
+                {% if task.due_date and task.due_date < today and task.status != 'done' %}border-l-4 border-l-walmart-red-100{% endif %}"
+            hx-get="/tasks/{{ task.id }}/detail"
+            hx-target="#detail-content"
+            hx-swap="innerHTML"
+            hx-on::after-request="document.getElementById('detail-modal').classList.remove('hidden')"
+        >
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-sm {% if task.status == 'done' %}line-through text-walmart-gray-100{% endif %} break-words">{{ task.title }}</div>
+                    {% if task.description %}
+                    <div class="text-xs text-walmart-gray-100 mt-0.5 truncate">{{ task.description }}</div>
+                    {% endif %}
+                </div>
+                <div class="text-xs text-walmart-gray-100 flex-shrink-0">📅 {{ task.task_date }}</div>
+            </div>
+            <div class="mt-2 flex gap-1 flex-wrap">
+                {% if task.category_name %}
+                <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full text-white"
+                    style="background-color: {{ task.category_color }};">🏷️ {{ task.category_name }}</span>
+                {% endif %}
+                <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full
+                    {% if task.priority == 'high' %}bg-walmart-red-10 text-walmart-red-100
+                    {% elif task.priority == 'medium' %}bg-walmart-spark-10 text-walmart-spark-140
+                    {% else %}bg-blue-50 text-walmart-blue-100{% endif %}"
+                >{{ task.priority }}</span>
+                <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full
+                    {% if task.status == 'done' %}bg-walmart-green-10 text-walmart-green-100
+                    {% elif task.status == 'in-progress' %}bg-blue-50 text-walmart-blue-100
+                    {% else %}bg-walmart-gray-10 text-walmart-gray-100{% endif %}"
+                >{{ task.status }}</span>
+                {% if task.assignee_name %}
+                <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full bg-walmart-gray-10 text-walmart-gray-160">👤 {{ task.assignee_name }}</span>
+                {% endif %}
+                {% if task.due_date and task.due_date < today and task.status != 'done' %}
+                <span class="text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full bg-walmart-red-10 text-walmart-red-100">⚠️ OVERDUE</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12 text-walmart-gray-100">
+        <svg class="w-12 h-12 mx-auto mb-3 text-walmart-gray-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+        <p class="text-lg font-medium">No tasks found</p>
+        <p class="text-sm mt-1">Try adjusting your filters</p>
+    </div>
+    {% endif %}
+</div>

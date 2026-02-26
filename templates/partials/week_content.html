@@ -1,0 +1,173 @@
+<!-- Week navigation + stats + day grid partial -->
+<div class="fade-in">
+    <!-- Week Navigation -->
+    <div class="flex items-center justify-between mb-6">
+        <button
+            hx-get="/week?week={{ prev_week }}"
+            hx-target="#week-content"
+            hx-swap="innerHTML"
+            class="flex items-center gap-1 px-3 py-2 bg-white border border-walmart-gray-50 rounded-lg hover:bg-walmart-gray-10 transition-colors text-walmart-gray-160 font-medium focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+            aria-label="Previous week"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            Prev
+        </button>
+        <div class="text-center">
+            <h2 class="text-xl font-bold text-walmart-gray-160">{{ week_label }}</h2>
+            <button
+                hx-get="/week?week=today"
+                hx-target="#week-content"
+                hx-swap="innerHTML"
+                onclick="this.setAttribute('hx-get', '/week?week=' + new Date().toISOString().split('T')[0]); htmx.process(this); htmx.trigger(this, 'click');"
+                class="text-sm text-walmart-blue-100 hover:underline mt-1 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded"
+            >Today</button>
+        </div>
+        <button
+            hx-get="/week?week={{ next_week }}"
+            hx-target="#week-content"
+            hx-swap="innerHTML"
+            class="flex items-center gap-1 px-3 py-2 bg-white border border-walmart-gray-50 rounded-lg hover:bg-walmart-gray-10 transition-colors text-walmart-gray-160 font-medium focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+            aria-label="Next week"
+        >
+            Next
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+        </button>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="grid grid-cols-4 gap-3 mb-6">
+        <div class="bg-white rounded-lg p-3 border border-walmart-gray-50 text-center">
+            <div class="text-2xl font-bold text-walmart-gray-160">{{ stats.total }}</div>
+            <div class="text-xs text-walmart-gray-100 uppercase tracking-wide">Total</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-walmart-gray-50 text-center">
+            <div class="text-2xl font-bold text-walmart-gray-100">{{ stats.pending }}</div>
+            <div class="text-xs text-walmart-gray-100 uppercase tracking-wide">Pending</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-walmart-gray-50 text-center">
+            <div class="text-2xl font-bold text-walmart-blue-100">{{ stats['in-progress'] }}</div>
+            <div class="text-xs text-walmart-gray-100 uppercase tracking-wide">In Progress</div>
+        </div>
+        <div class="bg-white rounded-lg p-3 border border-walmart-gray-50 text-center">
+            <div class="text-2xl font-bold text-walmart-green-100">{{ stats.done }}</div>
+            <div class="text-xs text-walmart-gray-100 uppercase tracking-wide">Done</div>
+        </div>
+    </div>
+
+    {% if stats.total > 0 %}
+    <!-- Progress Bar -->
+    <div class="mb-6 bg-white rounded-lg p-3 border border-walmart-gray-50">
+        <div class="flex justify-between text-sm mb-1">
+            <span class="font-medium">Week Progress</span>
+            <span class="text-walmart-gray-100">{{ ((stats.done / stats.total) * 100) | int }}% complete</span>
+        </div>
+        <div class="w-full bg-walmart-gray-10 rounded-full h-3" role="progressbar" aria-valuenow="{{ ((stats.done / stats.total) * 100) | int }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="bg-walmart-green-100 h-3 rounded-full transition-all duration-500" style="width: {{ ((stats.done / stats.total) * 100) | int }}%"></div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Day Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-7 gap-3">
+        {% for day in days %}
+        <div class="bg-white rounded-xl border border-walmart-gray-50 overflow-hidden {% if day.is_today %}day-today{% endif %}">
+            <!-- Day Header -->
+            <div class="px-3 py-2 {% if day.is_today %}bg-walmart-blue-100 text-white{% else %}bg-walmart-gray-10 text-walmart-gray-160{% endif %}">
+                <div class="font-bold text-sm">{{ day.name }}</div>
+                <div class="text-xs {% if day.is_today %}text-blue-100{% else %}text-walmart-gray-100{% endif %}">{{ day.display_date }}</div>
+            </div>
+
+            <!-- Tasks -->
+            <div class="p-2 space-y-2 min-h-[80px]" data-day-drop="{{ day.date_str }}">
+                {% for task in day.tasks %}
+                <div class="task-{{ task.status }} bg-walmart-gray-10 rounded-lg p-2 group relative
+                    {% if task.priority == 'high' %}ring-1 ring-red-200{% endif %}
+                    {% if task.due_date and task.due_date < day.date_str and task.status != 'done' %}bg-walmart-red-10 ring-1 ring-walmart-red-100{% endif %}"
+                    data-task-id="{{ task.id }}">
+                    <div class="flex items-start gap-2">
+                        <!-- Drag Handle -->
+                        <div class="drag-handle cursor-grab active:cursor-grabbing flex-shrink-0 mt-0.5 text-walmart-gray-100 hover:text-walmart-gray-160 opacity-0 group-hover:opacity-60 transition-opacity" title="Drag to reschedule">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>
+                        </div>
+                        <button
+                            hx-patch="/tasks/{{ task.id }}/toggle?week={{ week_start.isoformat() }}"
+                            hx-target="#week-content"
+                            hx-swap="innerHTML"
+                            class="mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100
+                                {% if task.status == 'done' %}border-walmart-green-100 bg-walmart-green-100
+                                {% elif task.status == 'in-progress' %}border-walmart-blue-100 bg-walmart-blue-100
+                                {% else %}border-walmart-gray-100 hover:border-walmart-blue-100{% endif %}"
+                            aria-label="Toggle status for {{ task.title }}: currently {{ task.status }}"
+                            title="Click to cycle: pending → in-progress → done"
+                        >
+                            {% if task.status == 'done' %}
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                            {% elif task.status == 'in-progress' %}
+                            <div class="w-2 h-2 bg-white rounded-full"></div>
+                            {% endif %}
+                        </button>
+                        <div
+                            class="flex-1 min-w-0 cursor-pointer"
+                            hx-get="/tasks/{{ task.id }}/detail"
+                            hx-target="#detail-content"
+                            hx-swap="innerHTML"
+                            hx-on::after-request="document.getElementById('detail-modal').classList.remove('hidden')"
+                            title="Click for details"
+                        >
+                            <div class="text-sm font-medium {% if task.status == 'done' %}line-through text-walmart-gray-100{% endif %} break-words hover:text-walmart-blue-100 transition-colors">{{ task.title }}</div>
+                            {% if task.description %}
+                            <div class="text-xs text-walmart-gray-100 mt-0.5 break-words">{{ task.description }}</div>
+                            {% endif %}
+                        </div>
+                        <button
+                            hx-delete="/tasks/{{ task.id }}?week={{ week_start.isoformat() }}"
+                            hx-target="#week-content"
+                            hx-swap="innerHTML"
+                            hx-confirm="Delete this task?"
+                            class="opacity-0 group-hover:opacity-100 flex-shrink-0 text-walmart-red-100 hover:text-red-700 transition-all p-0.5 focus:outline-none focus:ring-2 focus:ring-walmart-red-100 rounded focus:opacity-100"
+                            aria-label="Delete task: {{ task.title }}"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                    <!-- Category + Priority + Status badges -->
+                    <div class="mt-1 flex gap-1 flex-wrap">
+                        {% if task.category_name %}
+                        <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full text-white"
+                            style="background-color: {{ task.category_color }};"
+                        >🏷️ {{ task.category_name }}</span>
+                        {% endif %}
+                        <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full
+                            {% if task.priority == 'high' %}bg-walmart-red-10 text-walmart-red-100
+                            {% elif task.priority == 'medium' %}bg-walmart-spark-10 text-walmart-spark-140
+                            {% else %}bg-blue-50 text-walmart-blue-100{% endif %}"
+                        >{% if task.priority == 'high' %}🔴{% elif task.priority == 'medium' %}🟡{% else %}🔵{% endif %} {{ task.priority }}</span>
+                        <span class="text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 rounded-full
+                            {% if task.status == 'done' %}bg-walmart-green-10 text-walmart-green-100
+                            {% elif task.status == 'in-progress' %}bg-blue-50 text-walmart-blue-100
+                            {% else %}bg-walmart-gray-10 text-walmart-gray-100{% endif %}"
+                        >{{ task.status }}</span>
+                    </div>
+                    {% if task.due_date %}
+                    <div class="mt-1 text-[10px]
+                        {% if task.due_date < day.date_str and task.status != 'done' %}text-walmart-red-100 font-bold{% else %}text-walmart-gray-100{% endif %}">
+                        {% if task.due_date < day.date_str and task.status != 'done' %}⚠️ OVERDUE - {% endif %}
+                        📅 Due: {{ task.due_date }}
+                    </div>
+                    {% endif %}
+                    {% if task.assignee_name %}
+                    <div class="mt-1 text-[10px] text-walmart-gray-100">
+                        👤 {{ task.assignee_name }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if not day.tasks %}
+                <div class="text-center text-xs text-walmart-gray-100 py-4 italic">No tasks</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

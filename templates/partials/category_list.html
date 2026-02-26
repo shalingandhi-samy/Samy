@@ -1,0 +1,46 @@
+<!-- Category List Partial - HTMX swappable -->
+<div class="space-y-3 fade-in">
+    {% if categories %}
+    {% for cat in categories %}
+    <div id="cat-row-{{ cat.id }}" class="bg-white rounded-lg border border-walmart-gray-50 p-4 flex items-center gap-4 group hover:shadow-md transition-shadow">
+        <!-- Color swatch -->
+        <div class="w-10 h-10 rounded-full flex-shrink-0 border-2 border-white shadow-sm" style="background-color: {{ cat.color }};"></div>
+
+        <!-- Name & color info -->
+        <div class="flex-1 min-w-0">
+            <div class="font-semibold text-walmart-gray-160 text-sm">{{ cat.name }}</div>
+            <div class="text-xs text-walmart-gray-100 font-mono">{{ cat.color }}</div>
+        </div>
+
+        <!-- Edit button -->
+        <button
+            onclick="startEdit({{ cat.id }}, '{{ cat.name }}', '{{ cat.color }}')"
+            class="opacity-0 group-hover:opacity-100 focus:opacity-100 px-3 py-1.5 text-sm text-walmart-blue-100 border border-walmart-blue-100 rounded-lg hover:bg-blue-50 transition-all focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+            aria-label="Edit {{ cat.name }}"
+        >
+            ✏️ Edit
+        </button>
+
+        <!-- Delete button -->
+        <button
+            hx-delete="/categories/{{ cat.id }}"
+            hx-target="#category-list"
+            hx-swap="innerHTML"
+            hx-confirm="Delete '{{ cat.name }}'? Tasks using this category will become uncategorized."
+            class="opacity-0 group-hover:opacity-100 focus:opacity-100 px-3 py-1.5 text-sm text-walmart-red-100 border border-walmart-red-100 rounded-lg hover:bg-walmart-red-10 transition-all focus:outline-none focus:ring-2 focus:ring-walmart-red-100"
+            aria-label="Delete {{ cat.name }}"
+        >
+            🗑️ Delete
+        </button>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="text-center py-12 text-walmart-gray-100">
+        <svg class="w-16 h-16 mx-auto mb-3 text-walmart-gray-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <p class="text-lg font-medium">No categories yet</p>
+        <p class="text-sm mt-1">Create your first one above ↑</p>
+    </div>
+    {% endif %}
+</div>

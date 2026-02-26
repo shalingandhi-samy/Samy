@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Categories - PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        walmart: {
+                            blue: { 100: '#0053e2', 110: '#004acc', 130: '#003399' },
+                            spark: { 10: '#fff8e6', 100: '#ffc220', 140: '#995213' },
+                            red: { 10: '#fef0ef', 100: '#ea1100' },
+                            green: { 10: '#edf7ea', 100: '#2a8703' },
+                            gray: { 10: '#f8f8f8', 50: '#e0e0e0', 100: '#888888', 160: '#2e2e2e' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.2s ease-out; }
+        body::before {
+            content: 'SAFETY FIRST';
+            position: fixed;
+            bottom: 20px;
+            left: 24px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            color: rgba(0, 83, 226, 0.12);
+            z-index: 9999;
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 700px;
+            height: 700px;
+            transform: translate(-50%, -50%);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cg fill='%23FFC220'%3E%3Cellipse cx='100' cy='30' rx='18' ry='35'/%3E%3Cellipse cx='160.6' cy='65' rx='18' ry='35' transform='rotate(60 160.6 65)'/%3E%3Cellipse cx='160.6' cy='135' rx='18' ry='35' transform='rotate(120 160.6 135)'/%3E%3Cellipse cx='100' cy='170' rx='18' ry='35'/%3E%3Cellipse cx='39.4' cy='135' rx='18' ry='35' transform='rotate(60 39.4 135)'/%3E%3Cellipse cx='39.4' cy='65' rx='18' ry='35' transform='rotate(120 39.4 65)'/%3E%3C/g%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.07;
+            pointer-events: none;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="text-walmart-gray-160 min-h-screen" style="background-color: #e8f0fe;">
+    <header class="bg-walmart-blue-100 text-white py-4 shadow-lg">
+        <div class="max-w-3xl mx-auto px-4 flex items-center justify-between">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                Manage Categories
+            </h1>
+            <a href="/" class="bg-walmart-spark-100 text-walmart-gray-160 font-semibold px-4 py-2 rounded-lg hover:bg-yellow-400 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-walmart-blue-100">
+                ← Back to Tracker
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 py-6">
+        <!-- Add / Edit Category Form -->
+        <div class="bg-white rounded-xl border border-walmart-gray-50 p-6 mb-6 shadow-sm">
+            <h2 id="form-title" class="text-lg font-bold text-walmart-gray-160 mb-4">➕ Add New Category</h2>
+            <form
+                id="category-form"
+                hx-post="/categories"
+                hx-target="#category-list"
+                hx-swap="innerHTML"
+                hx-on::after-request="if(event.detail.successful) resetForm();"
+                class="flex flex-col sm:flex-row gap-4 items-end"
+            >
+                <div class="flex-1 w-full">
+                    <label for="cat-name" class="block text-sm font-medium text-walmart-gray-160 mb-1">Category Name <span class="text-walmart-red-100">*</span></label>
+                    <input
+                        type="text" id="cat-name" name="name" required maxlength="50"
+                        class="w-full border border-walmart-gray-50 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:border-transparent"
+                        placeholder="e.g. Safety, Maintenance, Cleaning..."
+                    />
+                </div>
+                <div class="w-full sm:w-auto">
+                    <label for="cat-color" class="block text-sm font-medium text-walmart-gray-160 mb-1">Color</label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="color" id="cat-color" name="color" value="#0053e2"
+                            class="w-12 h-10 rounded-lg border border-walmart-gray-50 cursor-pointer"
+                        />
+                        <span id="color-label" class="text-xs font-mono text-walmart-gray-100">#0053e2</span>
+                    </div>
+                </div>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button
+                        type="submit"
+                        id="submit-btn"
+                        class="flex-1 sm:flex-none px-5 py-2.5 bg-walmart-blue-100 text-white font-semibold rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+                    >Add Category</button>
+                    <button
+                        type="button"
+                        id="cancel-btn"
+                        onclick="resetForm()"
+                        class="hidden px-4 py-2.5 border border-walmart-gray-50 text-walmart-gray-160 rounded-lg hover:bg-walmart-gray-10 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                    >Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Preset Colors -->
+        <div class="mb-6">
+            <p class="text-xs text-walmart-gray-100 uppercase tracking-wide font-semibold mb-2">🎨 Quick Colors</p>
+            <div class="flex flex-wrap gap-2">
+                {% set presets = [
+                    ('#0053e2', 'Blue'), ('#2a8703', 'Green'), ('#ea1100', 'Red'),
+                    ('#ffc220', 'Spark'), ('#995213', 'Brown'), ('#7c3aed', 'Purple'),
+                    ('#0891b2', 'Cyan'), ('#e11d48', 'Rose'), ('#ca8a04', 'Gold'),
+                    ('#16a34a', 'Emerald'), ('#2563eb', 'Indigo'), ('#888888', 'Gray')
+                ] %}
+                {% for hex, label in presets %}
+                <button
+                    type="button"
+                    onclick="pickColor('{{ hex }}')"
+                    class="w-8 h-8 rounded-full border-2 border-white shadow-sm hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-1"
+                    style="background-color: {{ hex }};"
+                    aria-label="{{ label }}"
+                    title="{{ label }} ({{ hex }})"
+                ></button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Category List -->
+        <h3 class="text-sm font-semibold text-walmart-gray-100 uppercase tracking-wide mb-3">📚 Your Categories ({{ categories|length }})</h3>
+        <div id="category-list">
+            {% include 'partials/category_list.html' %}
+        </div>
+    </main>
+
+    <script>
+        const form = document.getElementById('category-form');
+        const nameInput = document.getElementById('cat-name');
+        const colorInput = document.getElementById('cat-color');
+        const colorLabel = document.getElementById('color-label');
+        const formTitle = document.getElementById('form-title');
+        const submitBtn = document.getElementById('submit-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        // Live color label
+        colorInput.addEventListener('input', () => {
+            colorLabel.textContent = colorInput.value;
+        });
+
+        // Pick a preset color
+        function pickColor(hex) {
+            colorInput.value = hex;
+            colorLabel.textContent = hex;
+        }
+
+        // Switch form to Edit mode
+        function startEdit(catId, name, color) {
+            formTitle.textContent = '✏️ Edit Category';
+            nameInput.value = name;
+            colorInput.value = color;
+            colorLabel.textContent = color;
+            submitBtn.textContent = 'Save Changes';
+            cancelBtn.classList.remove('hidden');
+
+            // Switch HTMX to PUT
+            form.setAttribute('hx-put', `/categories/${catId}`);
+            form.removeAttribute('hx-post');
+            htmx.process(form);
+
+            nameInput.focus();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Reset form back to Add mode
+        function resetForm() {
+            formTitle.textContent = '➕ Add New Category';
+            nameInput.value = '';
+            colorInput.value = '#0053e2';
+            colorLabel.textContent = '#0053e2';
+            submitBtn.textContent = 'Add Category';
+            cancelBtn.classList.add('hidden');
+
+            // Switch HTMX back to POST
+            form.setAttribute('hx-post', '/categories');
+            form.removeAttribute('hx-put');
+            htmx.process(form);
+        }
+    </script>
+</body>
+</html>

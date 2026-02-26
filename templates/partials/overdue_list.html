@@ -1,0 +1,52 @@
+<!-- Overdue List for Notification Panel -->
+<div class="fade-in">
+    {% if tasks %}
+    <div class="divide-y divide-walmart-gray-50">
+        {% for task in tasks %}
+        <div class="px-4 py-3 hover:bg-walmart-gray-10 cursor-pointer transition-colors"
+            hx-get="/tasks/{{ task.id }}/detail"
+            hx-target="#detail-content"
+            hx-swap="innerHTML"
+            hx-on::after-request="document.getElementById('detail-modal').classList.remove('hidden'); document.getElementById('notif-panel').classList.add('hidden');"
+        >
+            <div class="flex items-start gap-2">
+                <div class="flex-shrink-0 mt-0.5 text-walmart-red-100">⚠️</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-walmart-gray-160 break-words">{{ task.title }}</div>
+                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                        <span class="text-[10px] font-semibold text-walmart-red-100">
+                            Due: {{ task.due_date }}
+                        </span>
+                        {% if task.category_name %}
+                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded-full text-white"
+                            style="background-color: {{ task.category_color }};">
+                            {{ task.category_name }}
+                        </span>
+                        {% endif %}
+                        {% if task.assignee_name %}
+                        <span class="text-[10px] text-walmart-gray-100">👤 {{ task.assignee_name }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-[10px] uppercase tracking-wider font-semibold mt-1 px-1.5 py-0.5 rounded-full inline-block
+                        {% if task.priority == 'high' %}bg-walmart-red-10 text-walmart-red-100
+                        {% elif task.priority == 'medium' %}bg-walmart-spark-10 text-walmart-spark-140
+                        {% else %}bg-blue-50 text-walmart-blue-100{% endif %}"
+                    >
+                        {% if task.priority == 'high' %}🔴{% elif task.priority == 'medium' %}🟡{% else %}🔵{% endif %} {{ task.priority }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="px-4 py-2 bg-walmart-red-10 text-center">
+        <span class="text-xs font-semibold text-walmart-red-100">{{ tasks|length }} overdue task{{ 's' if tasks|length != 1 }}</span>
+    </div>
+    {% else %}
+    <div class="px-4 py-8 text-center">
+        <div class="text-3xl mb-2">✅</div>
+        <div class="text-sm text-walmart-gray-100">No overdue tasks!</div>
+        <div class="text-xs text-walmart-gray-100 mt-1">You're all caught up 🌟</div>
+    </div>
+    {% endif %}
+</div>

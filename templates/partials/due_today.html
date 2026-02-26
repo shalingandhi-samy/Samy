@@ -1,0 +1,82 @@
+<!-- Due Today Sidebar Partial -->
+<div class="fade-in">
+    <h3 class="text-sm font-bold text-walmart-gray-160 uppercase tracking-wide mb-3 flex items-center gap-2">
+        📅 Due Today
+        <span class="text-xs font-normal text-walmart-gray-100">{{ today }}</span>
+    </h3>
+
+    {% if tasks %}
+    <div class="space-y-2">
+        {% for task in tasks %}
+        <div class="bg-white rounded-lg p-2.5 border border-walmart-gray-50 cursor-pointer hover:border-walmart-blue-100 transition-colors group
+            {% if task.status == 'done' %}opacity-60{% endif %}
+            {% if task.due_date and task.due_date < today and task.status != 'done' %}border-walmart-red-100 bg-walmart-red-10{% endif %}"
+            hx-get="/tasks/{{ task.id }}/detail"
+            hx-target="#detail-content"
+            hx-swap="innerHTML"
+            hx-on::after-request="document.getElementById('detail-modal').classList.remove('hidden')"
+        >
+            <div class="flex items-start gap-2">
+                <button
+                    hx-patch="/tasks/{{ task.id }}/toggle"
+                    hx-target="#due-today-panel"
+                    hx-swap="innerHTML"
+                    hx-on::after-request="htmx.trigger(document.body, 'refreshWeek')"
+                    onclick="event.stopPropagation()"
+                    class="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors
+                        {% if task.status == 'done' %}border-walmart-green-100 bg-walmart-green-100
+                        {% elif task.status == 'in-progress' %}border-walmart-blue-100 bg-walmart-blue-100
+                        {% else %}border-walmart-gray-100 hover:border-walmart-blue-100{% endif %}"
+                    aria-label="Toggle {{ task.title }}"
+                    title="{{ task.status }}"
+                >
+                    {% if task.status == 'done' %}
+                    <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                    {% elif task.status == 'in-progress' %}
+                    <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+                    {% endif %}
+                </button>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-medium break-words {% if task.status == 'done' %}line-through text-walmart-gray-100{% endif %}">{{ task.title }}</div>
+                    <div class="flex gap-1 mt-1 flex-wrap">
+                        <span class="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded-full
+                            {% if task.priority == 'high' %}bg-walmart-red-10 text-walmart-red-100
+                            {% elif task.priority == 'medium' %}bg-walmart-spark-10 text-walmart-spark-140
+                            {% else %}bg-blue-50 text-walmart-blue-100{% endif %}"
+                        >{{ task.priority }}</span>
+                        {% if task.category_name %}
+                        <span class="text-[9px] uppercase tracking-wider font-semibold px-1 py-0.5 rounded-full text-white" style="background-color: {{ task.category_color }};">{{ task.category_name }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Summary -->
+    {% set pending = tasks | selectattr('status', 'ne', 'done') | list | length %}
+    {% set done = tasks | selectattr('status', 'eq', 'done') | list | length %}
+    <div class="mt-3 pt-3 border-t border-walmart-gray-50">
+        <div class="flex justify-between text-xs text-walmart-gray-100">
+            <span>{{ done }}/{{ tasks|length }} done</span>
+            {% if pending > 0 %}
+            <span class="text-walmart-red-100 font-semibold">{{ pending }} remaining</span>
+            {% else %}
+            <span class="text-walmart-green-100 font-semibold">✅ All done!</span>
+            {% endif %}
+        </div>
+        {% if tasks|length > 0 %}
+        <div class="w-full bg-walmart-gray-10 rounded-full h-1.5 mt-1.5">
+            <div class="bg-walmart-green-100 h-1.5 rounded-full transition-all" style="width: {{ ((done / tasks|length) * 100) | int }}%"></div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="text-center py-6">
+        <div class="text-3xl mb-2">🌟</div>
+        <div class="text-sm text-walmart-gray-100 italic">Nothing due today!</div>
+    </div>
+    {% endif %}
+</div>

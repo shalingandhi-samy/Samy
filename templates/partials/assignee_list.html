@@ -1,0 +1,35 @@
+<!-- Assignee Management List -->
+<div class="divide-y divide-walmart-gray-50">
+    {% if assignees %}
+    {% for a in assignees %}
+    <div class="flex items-center justify-between px-4 py-3 hover:bg-walmart-gray-10 transition-colors">
+        <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium text-walmart-gray-160">{{ a.name }}</div>
+            {% if a.email %}
+            <div class="text-xs text-walmart-gray-100">📧 {{ a.email }}</div>
+            {% else %}
+            <div class="text-xs text-walmart-gray-100 italic">No email set</div>
+            {% endif %}
+        </div>
+        <button
+            hx-delete="/assignees/{{ a.id }}"
+            hx-target="#assignee-manage-list"
+            hx-swap="innerHTML"
+            hx-confirm="Delete {{ a.name }}? Their tasks will become unassigned."
+            class="ml-3 p-1.5 text-walmart-gray-100 hover:text-walmart-red-100 hover:bg-walmart-red-10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-red-100"
+            aria-label="Delete {{ a.name }}"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </button>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="px-4 py-6 text-center">
+        <div class="text-2xl mb-1">👤</div>
+        <div class="text-sm text-walmart-gray-100">No team members yet</div>
+    </div>
+    {% endif %}
+</div>

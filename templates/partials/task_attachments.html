@@ -1,0 +1,87 @@
+<!-- Task Attachments Partial -->
+<div class="fade-in">
+    <!-- Upload Form -->
+    <form
+        hx-post="/tasks/{{ task_id }}/attachments"
+        hx-target="#attachments-section"
+        hx-swap="innerHTML"
+        hx-encoding="multipart/form-data"
+        hx-on::after-request="if(event.detail.successful) this.reset()"
+        class="mb-3"
+    >
+        <label
+            for="file-upload-{{ task_id }}"
+            class="flex items-center justify-center gap-2 w-full border-2 border-dashed border-walmart-gray-50 rounded-lg px-3 py-3 cursor-pointer hover:border-walmart-blue-100 hover:bg-blue-50/30 transition-colors text-sm text-walmart-gray-100"
+            id="drop-zone-{{ task_id }}"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+            <span id="file-label-{{ task_id }}">Click or drop a file here</span>
+            <input
+                type="file" id="file-upload-{{ task_id }}" name="file" class="hidden"
+                accept=".jpg,.jpeg,.png,.gif,.webp,.bmp,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.json"
+                onchange="document.getElementById('file-label-{{ task_id }}').textContent = this.files[0]?.name || 'Click or drop a file here'; if(this.files[0]) this.closest('form').querySelector('[type=submit]').classList.remove('hidden');"
+            />
+        </label>
+        <button
+            type="submit"
+            class="hidden mt-2 w-full px-3 py-1.5 bg-walmart-blue-100 text-white text-sm font-semibold rounded-lg hover:bg-walmart-blue-110 transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 focus:ring-offset-2"
+        >📤 Upload</button>
+    </form>
+
+    <!-- Attachments List -->
+    {% if attachments %}
+    <div class="space-y-2 max-h-48 overflow-y-auto">
+        {% for att in attachments %}
+        {% set is_image = att.content_type and att.content_type.startswith('image/') %}
+        <div class="bg-walmart-gray-10 rounded-lg p-2.5 group">
+            <div class="flex items-center gap-2">
+                <!-- Icon / Thumbnail -->
+                {% if is_image %}
+                <a href="/attachments/{{ att.id }}" target="_blank" class="flex-shrink-0">
+                    <img
+                        src="/attachments/{{ att.id }}"
+                        alt="{{ att.original_name }}"
+                        class="w-10 h-10 rounded object-cover border border-walmart-gray-50"
+                        loading="lazy"
+                    />
+                </a>
+                {% else %}
+                <div class="flex-shrink-0 w-10 h-10 rounded bg-walmart-gray-50 flex items-center justify-center text-lg">
+                    {% if att.content_type == 'application/pdf' %}📄
+                    {% elif 'spreadsheet' in (att.content_type or '') or att.original_name.endswith(('.xls', '.xlsx', '.csv')) %}📊
+                    {% elif 'word' in (att.content_type or '') or att.original_name.endswith(('.doc', '.docx')) %}🗒️
+                    {% else %}📎{% endif %}
+                </div>
+                {% endif %}
+
+                <!-- File Info -->
+                <div class="flex-1 min-w-0">
+                    <a href="/attachments/{{ att.id }}" target="_blank"
+                        class="text-xs font-medium text-walmart-blue-100 hover:underline break-all"
+                    >{{ att.original_name }}</a>
+                    <div class="text-[10px] text-walmart-gray-100">
+                        {{ (att.file_size / 1024) | round(1) }} KB · {{ att.created_at }}
+                    </div>
+                </div>
+
+                <!-- Delete -->
+                <button
+                    hx-delete="/attachments/{{ att.id }}?task_id={{ task_id }}"
+                    hx-target="#attachments-section"
+                    hx-swap="innerHTML"
+                    hx-confirm="Delete this attachment?"
+                    class="opacity-0 group-hover:opacity-100 flex-shrink-0 text-walmart-red-100 hover:text-red-700 transition-all p-0.5 focus:outline-none focus:ring-2 focus:ring-walmart-red-100 rounded focus:opacity-100"
+                    aria-label="Delete {{ att.original_name }}"
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-2">
+        <div class="text-xs text-walmart-gray-100 italic">No attachments yet.</div>
+    </div>
+    {% endif %}
+</div>
