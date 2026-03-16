@@ -203,6 +203,16 @@ async def remove_task(request: Request, task_id: int, week: str = ""):
     return templates.TemplateResponse("partials/week_content.html", {"request": request, **context})
 
 
+@app.get("/assignees/options", response_class=HTMLResponse)
+async def assignee_options(request: Request):
+    """HTMX endpoint: return fresh <option> elements for the assignee dropdown."""
+    assignees = await get_assignees()
+    options_html = '<option value="">Unassigned</option>'
+    for a in assignees:
+        options_html += f'<option value="{a["id"]}">{a["name"]}</option>'
+    return HTMLResponse(options_html)
+
+
 @app.post("/assignees", response_class=HTMLResponse)
 async def add_assignee(
     request: Request,
