@@ -15,10 +15,7 @@
         <div class="text-center">
             <h2 class="text-xl font-bold text-walmart-gray-160">{{ week_label }}</h2>
             <button
-                hx-get="/week?week=today"
-                hx-target="#week-content"
-                hx-swap="innerHTML"
-                onclick="this.setAttribute('hx-get', '/week?week=' + new Date().toISOString().split('T')[0]); htmx.process(this); htmx.trigger(this, 'click');"
+                onclick="htmx.ajax('GET', '/week?week=' + new Date().toLocaleDateString('en-CA'), {target:'#week-content', swap:'innerHTML'})"
                 class="text-sm text-walmart-blue-100 hover:underline mt-1 focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 rounded"
             >Today</button>
         </div>

@@ -118,9 +118,12 @@ async def index(request: Request, week: str | None = None):
 @app.get("/week", response_class=HTMLResponse)
 async def get_week(request: Request, week: str):
     """HTMX endpoint: get week content partial."""
-    # Always snap to the Saturday that starts the Walmart week,
-    # even if the passed date falls mid-week (e.g. from the Today button).
-    week_start = get_week_start(date.fromisoformat(week))
+    # Always snap to the Saturday that starts the Walmart week.
+    # Gracefully handle 'today' as a fallback value.
+    try:
+        week_start = get_week_start(date.fromisoformat(week))
+    except ValueError:
+        week_start = get_week_start(date.today())
     tasks_by_day = await get_tasks_for_week(week_start)
     stats = await get_week_stats(week_start)
     categories = await get_categories()
