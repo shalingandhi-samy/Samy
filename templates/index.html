@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER</title>
+    <title>PHL5 | SAFETY INCIDENT CORRECTIVE ACTION TRACKER | FY 2027</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
@@ -74,7 +74,7 @@
                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
-                PHL5 SAFETY INCIDENT CORRECTIVE ACTION TRACKER
+                PHL5 | SAFETY INCIDENT CORRECTIVE ACTION TRACKER | FY 2027
             </h1>
             <div class="flex items-center gap-2">
                 <a
@@ -375,8 +375,41 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
-            <div id="assignee-manage-list" class="max-h-[60vh] overflow-y-auto">
+            <div id="assignee-manage-list" class="max-h-[50vh] overflow-y-auto">
                 <!-- HTMX loads assignee_list.html here -->
+            </div>
+            <!-- Add Team Member Form -->
+            <div class="px-6 py-4 border-t border-walmart-gray-50 bg-walmart-gray-10">
+                <p class="text-xs font-semibold text-walmart-gray-100 uppercase tracking-wide mb-3">➕ Add Team Member</p>
+                <form
+                    hx-post="/assignees/manage"
+                    hx-target="#assignee-manage-list"
+                    hx-swap="innerHTML"
+                    hx-on::after-request="this.reset()"
+                    class="flex flex-col gap-2"
+                >
+                    <input
+                        type="text"
+                        name="name"
+                        placeholder="Full Name *"
+                        required
+                        class="w-full px-3 py-2 text-sm border border-walmart-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 bg-white text-walmart-gray-160 placeholder-walmart-gray-100"
+                        aria-label="Team member name"
+                    />
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Email (optional)"
+                        class="w-full px-3 py-2 text-sm border border-walmart-gray-50 rounded-lg focus:outline-none focus:ring-2 focus:ring-walmart-blue-100 bg-white text-walmart-gray-160 placeholder-walmart-gray-100"
+                        aria-label="Team member email"
+                    />
+                    <button
+                        type="submit"
+                        class="w-full bg-walmart-blue-100 hover:bg-walmart-blue-110 active:bg-walmart-blue-130 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                    >
+                        ➕ Add Member
+                    </button>
+                </form>
             </div>
         </div>
     </div>
@@ -569,7 +602,7 @@
                 ? titles.join('\n') + (count > 3 ? `\n...and ${count - 3} more` : '')
                 : `${count} task(s) are overdue!`;
 
-            const notif = new Notification('⚠️ Overdue Tasks - PHL5 Safety Tracker', {
+            const notif = new Notification('⚠️ Overdue Tasks - PHL5 | SAFETY INCIDENT CORRECTIVE ACTION TRACKER | FY 2027', {
                 body: body,
                 icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
                 tag: 'overdue-tasks',

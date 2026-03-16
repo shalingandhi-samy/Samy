@@ -1,4 +1,4 @@
-"""FastAPI application for the Weekly Action Tracker."""
+"""FastAPI application for the PHL5 | SAFETY INCIDENT CORRECTIVE ACTION TRACKER | FY 2027."""
 from contextlib import asynccontextmanager
 from datetime import date, timedelta
 
@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Weekly Action Tracker", lifespan=lifespan)
+app = FastAPI(title="PHL5 | SAFETY INCIDENT CORRECTIVE ACTION TRACKER | FY 2027", lifespan=lifespan)
 templates = Jinja2Templates(directory="templates")
 
 # Walmart weeks start on Saturday (Sat-Sun-Mon-Tue-Wed-Thu-Fri)
@@ -223,6 +223,21 @@ async def add_assignee(
 @app.get("/assignees/manage", response_class=HTMLResponse)
 async def manage_assignees(request: Request):
     """HTMX endpoint: return the assignee management list."""
+    assignees = await get_assignees()
+    return templates.TemplateResponse(
+        "partials/assignee_list.html",
+        {"request": request, "assignees": assignees},
+    )
+
+
+@app.post("/assignees/manage", response_class=HTMLResponse)
+async def add_assignee_from_modal(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(default=""),
+):
+    """HTMX endpoint: create a new assignee from modal and return updated list."""
+    await create_assignee(name.strip(), email.strip())
     assignees = await get_assignees()
     return templates.TemplateResponse(
         "partials/assignee_list.html",
