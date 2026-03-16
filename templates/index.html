@@ -148,7 +148,19 @@
                 <!-- Search Panel (hidden by default) -->
                 <div id="search-panel" class="hidden">
             <div class="bg-white rounded-xl border border-walmart-gray-50 p-4 mb-4 fade-in">
-                <h3 class="text-lg font-bold text-walmart-gray-160 mb-3">🔍 Search & Filter</h3>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-bold text-walmart-gray-160">🔍 Search & Filter</h3>
+                    <button
+                        onclick="document.getElementById('search-panel').classList.add('hidden'); document.getElementById('week-content').classList.remove('hidden');"
+                        class="inline-flex items-center gap-2 bg-walmart-blue-100 hover:bg-walmart-blue-110 active:bg-walmart-blue-130 text-white text-sm font-semibold px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-walmart-blue-100"
+                        aria-label="Back to Tracker"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Tracker
+                    </button>
+                </div>
                 <form
                     hx-get="/search"
                     hx-target="#search-results"
