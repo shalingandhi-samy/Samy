@@ -103,7 +103,7 @@ def build_week_context(
 async def index(request: Request, week: str | None = None):
     """Render the main page."""
     if week:
-        week_start = date.fromisoformat(week)
+        week_start = get_week_start(date.fromisoformat(week))
     else:
         week_start = get_week_start(date.today())
 
@@ -118,7 +118,9 @@ async def index(request: Request, week: str | None = None):
 @app.get("/week", response_class=HTMLResponse)
 async def get_week(request: Request, week: str):
     """HTMX endpoint: get week content partial."""
-    week_start = date.fromisoformat(week)
+    # Always snap to the Saturday that starts the Walmart week,
+    # even if the passed date falls mid-week (e.g. from the Today button).
+    week_start = get_week_start(date.fromisoformat(week))
     tasks_by_day = await get_tasks_for_week(week_start)
     stats = await get_week_stats(week_start)
     categories = await get_categories()
@@ -191,7 +193,7 @@ async def remove_task(request: Request, task_id: int, week: str = ""):
             ))
     # Now delete
     if week:
-        week_start = date.fromisoformat(week)
+        week_start = get_week_start(date.fromisoformat(week))
     else:
         week_start = get_week_start(date.today())
     await delete_task(task_id)
@@ -630,7 +632,7 @@ async def dashboard(request: Request):
 async def export_csv(week: str = ""):
     """Export current week's tasks as CSV."""
     if week:
-        week_start = date.fromisoformat(week)
+        week_start = get_week_start(date.fromisoformat(week))
     else:
         week_start = get_week_start(date.today())
     tasks = await get_tasks_for_export(week_start)
