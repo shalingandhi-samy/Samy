@@ -115,11 +115,22 @@ async def index(request: Request, week: str | None = None):
     return templates.TemplateResponse("index.html", {"request": request, **context})
 
 
+@app.get("/week/today", response_class=HTMLResponse)
+async def get_today_week(request: Request):
+    """HTMX endpoint: jump to the Walmart week containing today."""
+    week_start = get_week_start(date.today())
+    tasks_by_day = await get_tasks_for_week(week_start)
+    stats = await get_week_stats(week_start)
+    categories = await get_categories()
+    assignees = await get_assignees()
+    context = build_week_context(week_start, tasks_by_day, stats, categories, assignees)
+    return templates.TemplateResponse("partials/week_content.html", {"request": request, **context})
+
+
 @app.get("/week", response_class=HTMLResponse)
 async def get_week(request: Request, week: str):
     """HTMX endpoint: get week content partial."""
     # Always snap to the Saturday that starts the Walmart week.
-    # Gracefully handle 'today' as a fallback value.
     try:
         week_start = get_week_start(date.fromisoformat(week))
     except ValueError:
